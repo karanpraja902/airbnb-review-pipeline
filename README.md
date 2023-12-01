@@ -4,4 +4,10 @@ This project is still in the development process. Other information will be adde
 
 ## Architecture
 
-Simulated Data Source -> Hadoop (HDFS) -> Vertica -> Dashboard
+Simulated Data Source -> Hadoop (HDFS) -> ???
+
+## Development
+
+### Docker
+
+For Spark docker images, you get them from [there](https://github.com/lazykern/docker-spark)

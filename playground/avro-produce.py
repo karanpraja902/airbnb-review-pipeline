@@ -13,7 +13,7 @@ TOPIC = "avro-schema-test"
 VALUE_SCHEMA_SUBJECT = TOPIC + "-value"
 
 # %%
-data_path = Path("../data")
+data_path = Path("data")
 reviews_df = pl.read_csv(data_path / "reviews" / "reviews.csv")
 
 # %%
@@ -37,11 +37,13 @@ producer_conf = {
 
 producer = SerializingProducer(producer_conf)
 
+def acked(err, msg):
+    if err is not None:
+        print("Failed to deliver message: %s: %s" % (str(msg), str(err)))
+    else:
+        print("Message produced: %s" % (str(msg)))
+
 # %%
-i = 0
 for row in reviews_df.iter_rows(named=True):
     producer.produce(topic=TOPIC, value=row)
     producer.flush()
-    i += 1
-    if i == 5:
-        break

@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "Review",
+  "fields": [
+    {"name": "listing_id", "type": "long"},
+    {"name": "id", "type": "long"},
+    {"name": "date", "type": "string"},
+    {"name": "reviewer_id", "type": "long"},
+    {"name": "reviewer_name", "type": "string"},
+    {"name": "comments", "type": "string"}
+  ]
+}

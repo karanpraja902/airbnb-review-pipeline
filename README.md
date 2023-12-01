@@ -10,4 +10,4 @@ Simulated Data Source -> Hadoop (HDFS) -> ???
 
 ### Docker
 
-For Spark docker images, you get them from [there](https://github.com/lazykern/docker-spark)
+For Spark docker images, you can get them from [there](https://github.com/lazykern/docker-spark)

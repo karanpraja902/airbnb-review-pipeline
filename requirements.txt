@@ -1,0 +1,7 @@
+pyspark==3.3.2
+confluent-kafka
+python-schema-registry-client
+matplotlib
+wordcloud
+polars
+avro

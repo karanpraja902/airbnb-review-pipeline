@@ -35,7 +35,7 @@ See [Spark ETL](src/spark/etl.py)
 ```bash
 docker cp -L src/spark/etl.py spark-master:/opt/etl.py
 docker exec -it spark-master /bin/bash
-spark-submit --master spark://spark-master:7077 /opt/etl.py
+spark-submit --master spark://spark-master:7077 --packages org.apache.spark:spark-avro_2.12:3.3.2,org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.2 /opt/etl.py
 ```
 
 ### Hadoop

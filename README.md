@@ -28,9 +28,9 @@ The ETL is done with Spark. The packages used are:
 - org.apache.spark:spark-avro_2.12:3.3.2
 - org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.2
 
-See [Spark ETL](src/spark/etl.py)
-
 The data will be stored in HDFS, partitioned by the year and month of the review.
+
+See [Spark ETL](src/spark/etl.py)
 
 ### Hadoop
 

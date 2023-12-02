@@ -2,8 +2,6 @@
 
 This project is a simulation of a data pipeline for Airbnb reviews, utilizing Kafka, Spark, and Hadoop Distributed File System (HDFS).
 
-![Wordcloud of Airbnb Reviews](assets/amsterdam-reviews-wordcloud.png)
-
 ## Architecture
 
 ![Data Pipeline Architecture](assets/pipeline-architecture.drawio.png)
@@ -25,15 +23,30 @@ The schema registry is used to store the schema of the data that is used in the 
 
 ### ETL
 
-The ETL is done with Spark, and the result is stored in HDFS.
+The ETL is done with Spark. The packages used are:
+
+- org.apache.spark:spark-avro_2.12:3.3.2
+- org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.2
 
 See [Spark ETL](src/spark/etl.py)
+
+The data will be stored in HDFS, partitioned by the year and month of the review.
 
 ### Hadoop
 
 #### HDFS
 
 The HDFS is used to store the raw data from Kafka with Spark, partitioned by the year and month of the review.
+
+### Wordcloud from the data in HDFS
+
+After running the pipeline, the wordcloud can be generated from the data in HDFS.
+
+```bash
+spark-submit --master spark://spark-master:7077 src/spark/wordcloud.py
+```
+
+![Wordcloud of Airbnb Reviews](assets/amsterdam-reviews-wordcloud.png)
 
 ## Development
 

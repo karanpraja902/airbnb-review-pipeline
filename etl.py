@@ -4,12 +4,15 @@ import json
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.avro.functions import from_avro
-from pyspark.sql.functions import col, expr
+from pyspark.sql.functions import expr
 from schema_registry.client import SchemaRegistryClient
 
-TOPIC = "avro-schema-test"
+TOPIC = "airbnb-reviews"
+
 KAFKA_BOOTSTRAP_SERVERS = "broker:29092"
+
 SCHEMA_REGISTRY_URL = "http://schema-registry:8099"
+
 HDFS_URL = "hdfs://namenode:9000"
 
 SCHEMA_REGISTRY_CLIENT = SchemaRegistryClient(SCHEMA_REGISTRY_URL)
@@ -21,14 +24,13 @@ if avro_schema_object is None:
 
 avro_schema = json.dumps(avro_schema_object.schema.raw_schema)
 
-spark = SparkSession.builder.appName("ReviewWordCount").getOrCreate()
+spark = SparkSession.builder.appName("AirbnbReviewsHDFS").getOrCreate()
 
 spark_stream = (
     spark.readStream.format("kafka")
     .option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP_SERVERS)
     .option("subscribe", TOPIC)
     .option("startingOffsets", "earliest")
-    # .option("maxOffsetsPerTrigger", 1000)
 )
 
 

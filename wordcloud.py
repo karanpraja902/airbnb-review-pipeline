@@ -1,37 +1,21 @@
-from pyspark.sql import functions as F
-from pyspark.sql import SQLContext
-from pyspark import SparkContext
-
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud, wordcloud
+from pyspark import SparkContext
+from pyspark.sql import SQLContext
 
-from collections import ChainMap
-
+from wordcloud import WordCloud
 
 sc = SparkContext()
 
 sql_context = SQLContext(sc)
 
-df = sql_context.read.parquet("hdfs://localhost:9000/data")
+df = sql_context.read.parquet("hdfs://localhost:9000/airbnb_reviews")
 
-# +----------+------------------+----------+-----------+-------------+--------------------+---------+
-# |listing_id|                id|      date|reviewer_id|reviewer_name|            comments|datamonth|
-# +----------+------------------+----------+-----------+-------------+--------------------+---------+
-# |    590681|882463965265288239|2023-05-02|    5314612|      Nikolas|Wonderful place. ...|  2023-05|
-# |      2818|881762416558697470|2023-05-01|  249593178|        Clara|Daniel est un hôt...|  2023-05|
+wordcloud = WordCloud(width=800, height=800, background_color="white", min_font_size=10)
 
-
-wordcloud = WordCloud(background_color="white")
-
-# Create a list of all the comments
 comments = df.select("comments").rdd.flatMap(lambda x: x).collect()
 
-# Create a wordcloud of the comments
 wordcloud.generate(" ".join(comments))
 
-# Display the generated image:
-# the matplotlib way:
-# save the image
 wordcloud.to_file("wordcloud.png")
 
 sc.stop()

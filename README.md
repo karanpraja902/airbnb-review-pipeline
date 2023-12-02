@@ -19,7 +19,7 @@ gunzip reviews.csv.gz
 
 #### Schema Registry
 
-The schema registry is used to store the schema of the data that is used in the pipeline. It is used by the [producer](src/producer.py) to validate the data before sending it to Kafka and by the [spark consumer](src/spark/etl.py) to deserialize the data.
+The schema registry is used to store [the schema](reviews.avsc) of the data that is used in the pipeline. It is used by the [producer](src/producer.py) to validate the data before sending it to Kafka and by the [spark consumer](src/spark/etl.py) to deserialize the data.
 
 ### ETL
 
@@ -31,6 +31,12 @@ The ETL is done with Spark. The packages used are:
 The data will be stored in HDFS, partitioned by the year and month of the review.
 
 See [Spark ETL](src/spark/etl.py)
+
+```bash
+docker cp -L src/spark/etl.py spark-master:/opt/etl.py
+docker exec -it spark-master /bin/bash
+spark-submit --master spark://spark-master:7077 /opt/etl.py
+```
 
 ### Hadoop
 

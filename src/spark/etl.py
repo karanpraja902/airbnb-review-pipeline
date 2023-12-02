@@ -59,7 +59,7 @@ def write_batch(df_batch: DataFrame, epoch_id: int):
         .partitionBy("datamonth")
         .format("parquet")
         .mode("append")
-        .save(HDFS_URL + "/data")
+        .save(HDFS_URL + "/airbnb_reviews")
     )
 
 

@@ -8,7 +8,9 @@ sc = SparkContext()
 
 sql_context = SQLContext(sc)
 
-df = sql_context.read.parquet("hdfs://localhost:9000/airbnb_reviews")
+df = sql_context.read.parquet(
+    "hdfs://namenode:9000/airbnb_review_pipeline/reviews"
+)
 
 wordcloud = WordCloud(width=800, height=800, background_color="white", min_font_size=10)
 

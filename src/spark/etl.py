@@ -14,6 +14,7 @@ KAFKA_BOOTSTRAP_SERVERS = "broker:29092"
 SCHEMA_REGISTRY_URL = "http://schema-registry:8099"
 
 HDFS_URL = "hdfs://namenode:9000"
+HDFS_OUTPUT_PATH = "/airbnb_review_pipeline/reviews"
 
 SCHEMA_REGISTRY_CLIENT = SchemaRegistryClient(SCHEMA_REGISTRY_URL)
 
@@ -24,7 +25,7 @@ if avro_schema_object is None:
 
 avro_schema = json.dumps(avro_schema_object.schema.raw_schema)
 
-spark = SparkSession.builder.appName("AirbnbReviewsHDFS").getOrCreate()
+spark = SparkSession.builder.appName("AirbnbReviewPipeline").getOrCreate()
 
 spark_stream = (
     spark.readStream.format("kafka")
@@ -59,7 +60,7 @@ def write_batch(df_batch: DataFrame, epoch_id: int):
         .partitionBy("datamonth")
         .format("parquet")
         .mode("append")
-        .save(HDFS_URL + "/airbnb_reviews")
+        .save(HDFS_URL + HDFS_OUTPUT_PATH)
     )
 
 

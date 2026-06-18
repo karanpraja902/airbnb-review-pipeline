@@ -1,1 +1,7 @@
 data/
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+wordcloud.png

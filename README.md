@@ -1,93 +1,159 @@
-# Airbnb Review Streaming Data Pipeline Simulation
+# Airbnb Review Pipeline
 
-This project is a simulation of a data pipeline for Airbnb reviews, utilizing Kafka, Spark, and Hadoop Distributed File System (HDFS).
+A local streaming data pipeline that publishes Airbnb review data to Apache Kafka, validates and serializes records with Avro and Schema Registry, processes the stream with Apache Spark, and stores partitioned Parquet data in Hadoop HDFS.
+
+Repository: [karanpraja902/airbnb-review-pipeline](https://github.com/karanpraja902/airbnb-review-pipeline)
+
+Author and maintainer: [karanpraja902](https://github.com/karanpraja902)
 
 ## Architecture
 
-![Data Pipeline Architecture](assets/pipeline-architecture.drawio.png)
+![Airbnb review pipeline architecture](assets/pipeline-architecture.drawio.png)
 
-### Data
+The pipeline follows this flow:
 
-The data that is used in this project is the review dataset from [insideairbnb](http://insideairbnb.com/get-the-data/)
+1. A Python producer reads Airbnb reviews from CSV.
+2. Schema Registry supplies the Avro schema used to serialize each review.
+3. Kafka receives serialized records on the `airbnb-reviews` topic.
+4. Spark Structured Streaming deserializes and processes the records.
+5. Spark writes Parquet files to `/airbnb_review_pipeline/reviews` in HDFS, partitioned by review month.
+6. A Spark job reads the stored comments and generates a word cloud.
 
-```bash
-mkdir -p data/reviews
-cd data/reviews
-wget http://data.insideairbnb.com/the-netherlands/north-holland/amsterdam/2023-09-03/data/reviews.csv.gz
-gunzip reviews.csv.gz
-```
+## Technology
 
-#### Schema Registry
-
-The schema registry is used to store [the schema](reviews.avsc) of the data that is used in the pipeline. It is used by the [producer](src/producer.py) to validate the data before sending it to Kafka and by the [spark consumer](src/spark/etl.py) to deserialize the data.
-
-### ETL
-
-The ETL is done with Spark. The packages used are:
-
-- org.apache.spark:spark-avro_2.12:3.3.2
-- org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.2
-
-The data will be stored in HDFS, partitioned by the year and month of the review.
-
-See [Spark ETL](src/spark/etl.py)
-
-```bash
-docker cp -L src/spark/etl.py spark-master:/opt/etl.py
-docker exec -it spark-master /bin/bash
-spark-submit --master spark://spark-master:7077 --packages org.apache.spark:spark-avro_2.12:3.3.2,org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.2 /opt/etl.py
-```
-
-### Hadoop
-
-#### HDFS
-
-The HDFS is used to store the raw data from Kafka with Spark, partitioned by the year and month of the review.
-
-### Wordcloud from the data in HDFS
-
-After running the pipeline, the wordcloud can be generated from the data in HDFS.
-
-```bash
-spark-submit --master spark://spark-master:7077 src/spark/wordcloud.py
-```
-
-![Wordcloud of Airbnb Reviews](assets/amsterdam-reviews-wordcloud.png)
-
-## Development
-
-### Requirements
-
-- Docker
-- Docker Compose
 - Python 3.10+
-- [Python Dependencies](requirements.txt)
-- [Airbnb Review Dataset](http://insideairbnb.com/get-the-data/) (Store it in `data/reviews/reviews.csv`)
+- Apache Kafka and Confluent Schema Registry
+- Apache Avro
+- Apache Spark Structured Streaming
+- Hadoop HDFS
+- Polars
+- Docker Compose V2
 
-### Docker
+## Project structure
 
-For Spark docker images, you can get them from [there](https://github.com/lazykern/docker-spark)
-
-**Note**: The docker images are not yet available on Docker Hub. You need to build them locally.
-
-```bash
-git clone https://github.com/lazykern/docker-spark
-cd docker-spark
-./build.sh
+```text
+.
+├── assets/                 # Architecture and output images
+├── docker/                 # Kafka, Confluent, Hadoop, and Spark services
+├── playground/             # Exploration notebooks and conversion utilities
+├── src/
+│   ├── producer.py         # CSV-to-Kafka producer
+│   └── spark/
+│       ├── etl.py          # Kafka-to-HDFS streaming ETL
+│       └── wordcloud.py    # HDFS review word-cloud job
+├── requirements.txt
+└── reviews.avsc            # Avro review schema
 ```
 
-#### Ports
+## Setup
 
-| Service          | Port |
-| ---------------- | ---- |
-| Kafka Broker     | 9092 |
-| Schema Registry  | 8099 |
-| Connect          | 8083 |
-| Control Center   | 9021 |
-| KSQLDB Server    | 8089 |
-| Kafka Rest Proxy | 8082 |
-| Hadoop Namenode  | 9870 |
-| Hadoop Datanode  | 9864 |
-| Hadoop YARN      | 8088 |
-| Spark Master     | 8080 |
-| Spark Worker     | 7077 |
+Clone the repository and install the Python dependencies:
+
+```bash
+git clone https://github.com/karanpraja902/airbnb-review-pipeline.git
+cd airbnb-review-pipeline
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+On Windows PowerShell, activate the environment with:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+### Download the dataset
+
+Download an Amsterdam reviews dataset from [Inside Airbnb](https://insideairbnb.com/get-the-data/) and save it as:
+
+```text
+data/reviews/reviews.csv
+```
+
+The project was developed against the Amsterdam review schema represented in [`reviews.avsc`](reviews.avsc). Confirm that the downloaded CSV contains these columns before running the producer:
+
+```text
+listing_id, id, date, reviewer_id, reviewer_name, comments
+```
+
+### Prepare Spark images
+
+The Compose stack expects locally available Spark master and worker images. The defaults are:
+
+```text
+spark-master:3.3.2-hadoop3
+spark-worker:3.3.2-hadoop3
+```
+
+Build compatible Spark 3.3.2/Hadoop 3 images, or override the image names before starting the stack:
+
+```bash
+export SPARK_MASTER_IMAGE=your-spark-master-image:tag
+export SPARK_WORKER_IMAGE=your-spark-worker-image:tag
+```
+
+PowerShell equivalent:
+
+```powershell
+$env:SPARK_MASTER_IMAGE = "your-spark-master-image:tag"
+$env:SPARK_WORKER_IMAGE = "your-spark-worker-image:tag"
+```
+
+## Run the pipeline
+
+Start the infrastructure:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+Register [`reviews.avsc`](reviews.avsc) in Schema Registry under the `airbnb-reviews-value` subject, then run the producer:
+
+```bash
+python src/producer.py
+```
+
+Copy and submit the Spark ETL job:
+
+```bash
+docker compose -f docker/docker-compose.yml cp src/spark/etl.py spark-master:/opt/etl.py
+docker compose -f docker/docker-compose.yml exec spark-master spark-submit \
+  --master spark://spark-master:7077 \
+  --packages org.apache.spark:spark-avro_2.12:3.3.2,org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.2 \
+  /opt/etl.py
+```
+
+## Generate the word cloud
+
+Copy and submit the word-cloud job after HDFS contains review data:
+
+```bash
+docker compose -f docker/docker-compose.yml cp src/spark/wordcloud.py spark-master:/opt/wordcloud.py
+docker compose -f docker/docker-compose.yml exec spark-master spark-submit \
+  --master spark://spark-master:7077 \
+  /opt/wordcloud.py
+```
+
+Example output:
+
+![Word cloud generated from Amsterdam Airbnb reviews](assets/amsterdam-reviews-wordcloud.png)
+
+## Service ports
+
+| Service | Port |
+| --- | ---: |
+| Kafka broker | 9092 |
+| Schema Registry | 8099 |
+| Hadoop NameNode | 9870 |
+| Hadoop DataNode | 9864 |
+| Spark master UI | 8080 |
+| Spark worker UI | 8081 |
+| Spark master | 7077 |
+
+## Notes
+
+- This repository is a local development and learning pipeline, not a production deployment.
+- The producer expects the Avro subject to exist before it starts.
+- The Docker stack uses single-node replication settings and fixed development credentials/configuration.
+- Dataset content and licensing are governed by [Inside Airbnb](https://insideairbnb.com/get-the-data/).

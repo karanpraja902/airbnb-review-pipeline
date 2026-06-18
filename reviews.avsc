@@ -1,6 +1,8 @@
 {
   "type": "record",
   "name": "Review",
+  "namespace": "io.github.karanpraja902.airbnb_review_pipeline",
+  "doc": "An Airbnb review record processed by the airbnb-review-pipeline project.",
   "fields": [
     {"name": "listing_id", "type": "long"},
     {"name": "id", "type": "long"},
